@@ -61,10 +61,75 @@ h1 {
     box-shadow: 0 8px 24px rgba(36, 48, 58, 0.06);
 }
 
-.form-section + .form-section {
-    margin-top: 28px;
-    padding-top: 24px;
-    border-top: 1px solid #e4e7eb;
+.progress {
+    margin: 0 0 28px;
+}
+
+.progress-list {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    color: #7b8794;
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+}
+
+.progress-number {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border: 2px solid #cbd2d9;
+    border-radius: 50%;
+    background-color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.progress-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.progress-step.is-complete {
+    color: #1e5c38;
+}
+
+.progress-step.is-complete .progress-number {
+    border-color: #1e5c38;
+    background-color: #1e5c38;
+    color: #ffffff;
+}
+
+.progress-step.is-active {
+    color: #1d4e89;
+}
+
+.progress-step.is-active .progress-number {
+    border-color: #1d4e89;
+    background-color: #1d4e89;
+    color: #ffffff;
+    box-shadow: 0 0 0 4px #e8f0fa;
+}
+
+.progress-step.is-active .progress-label {
+    font-weight: 700;
+}
+
+.form-step[hidden] {
+    display: none;
 }
 
 h2 {
@@ -72,6 +137,11 @@ h2 {
     font-family: Arial, Helvetica, sans-serif;
     font-size: 1.15rem;
     font-weight: 700;
+}
+
+h2:focus {
+    outline: 2px solid #1d4e89;
+    outline-offset: 4px;
 }
 
 .section-description {
@@ -126,6 +196,68 @@ select:focus {
     border-color: #1d4e89;
 }
 
+input.is-invalid,
+select.is-invalid {
+    border-color: #9b2c2c;
+    background-color: #fff8f7;
+}
+
+.review-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin: 0;
+}
+
+.review-item {
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px solid #e4e7eb;
+    border-radius: 8px;
+    background-color: #f8fafc;
+}
+
+.review-item dt {
+    margin: 0;
+    color: #627d98;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.review-item dd {
+    margin: 4px 0 0;
+    color: #24303a;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 1rem;
+}
+
+.step-error {
+    margin-top: 20px;
+    padding: 14px 16px;
+    border: 1px solid #e7b2a8;
+    border-radius: 8px;
+    background-color: #fdf4f2;
+    color: #8a2a1f;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.step-error[hidden] {
+    display: none;
+}
+
+.step-error p {
+    margin: 0 0 8px;
+    font-weight: 700;
+}
+
+.step-error ul {
+    margin: 0;
+    padding-left: 1.2rem;
+}
+
 .form-actions {
     display: flex;
     flex-direction: column;
@@ -133,8 +265,14 @@ select:focus {
     margin-top: 28px;
 }
 
+.form-actions button[hidden] {
+    display: none;
+}
+
 #predict-button,
-#reset-button {
+#reset-button,
+#next-button,
+#back-button {
     width: 100%;
     padding: 14px 18px;
     border-radius: 8px;
@@ -144,39 +282,44 @@ select:focus {
     cursor: pointer;
 }
 
-#predict-button {
+#predict-button,
+#next-button {
     border: 0;
     background-color: #1d4e89;
     color: #ffffff;
 }
 
-#predict-button:hover {
+#predict-button:hover,
+#next-button:hover {
     background-color: #163e6e;
 }
 
-#predict-button:focus {
+#predict-button:focus,
+#next-button:focus,
+#reset-button:focus,
+#back-button:focus {
     outline: 2px solid #1d4e89;
     outline-offset: 2px;
 }
 
-#predict-button:disabled {
+#predict-button:disabled,
+#reset-button:disabled,
+#next-button:disabled,
+#back-button:disabled {
     cursor: wait;
     opacity: 0.75;
 }
 
-#reset-button {
+#reset-button,
+#back-button {
     border: 1px solid #cbd2d9;
     background-color: #ffffff;
     color: #24303a;
 }
 
-#reset-button:hover {
+#reset-button:hover,
+#back-button:hover {
     background-color: #f0f4f8;
-}
-
-#reset-button:focus {
-    outline: 2px solid #1d4e89;
-    outline-offset: 2px;
 }
 
 #prediction-result {
@@ -227,7 +370,18 @@ select:focus {
         padding: 40px 24px 56px;
     }
 
-    .form-grid {
+    .progress-number {
+        width: 32px;
+        height: 32px;
+        font-size: 0.95rem;
+    }
+
+    .progress-label {
+        font-size: 0.78rem;
+    }
+
+    .form-grid,
+    .review-list {
         grid-template-columns: 1fr 1fr;
     }
 
@@ -236,11 +390,13 @@ select:focus {
         align-items: stretch;
     }
 
-    #predict-button {
-        flex: 2;
-    }
-
+    #back-button,
     #reset-button {
         flex: 1;
+    }
+
+    #next-button,
+    #predict-button {
+        flex: 2;
     }
 }
