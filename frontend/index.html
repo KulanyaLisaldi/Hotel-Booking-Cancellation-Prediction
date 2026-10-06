@@ -53,17 +53,20 @@
                                 <option value="City Hotel">City Hotel</option>
                                 <option value="Resort Hotel">Resort Hotel</option>
                             </select>
+                            <p class="field-error" id="hotel-error" hidden></p>
                         </div>
 
                         <div class="field">
                             <label for="lead_time">Lead Time (Days)</label>
                             <input id="lead_time" name="lead_time" type="number" min="0" required>
+                            <p class="field-error" id="lead_time-error" hidden></p>
                             <p class="help">Number of days between booking and arrival.</p>
                         </div>
 
                         <div class="field">
                             <label for="arrival_date_year">Arrival Year</label>
                             <input id="arrival_date_year" name="arrival_date_year" type="number" min="2000" required>
+                            <p class="field-error" id="arrival_date_year-error" hidden></p>
                         </div>
 
                         <div class="field">
@@ -82,21 +85,25 @@
                                 <option value="November">November</option>
                                 <option value="December">December</option>
                             </select>
+                            <p class="field-error" id="arrival_date_month-error" hidden></p>
                         </div>
 
                         <div class="field">
                             <label for="arrival_date_week_number">Arrival Week Number</label>
                             <input id="arrival_date_week_number" name="arrival_date_week_number" type="number" min="1" max="53" required>
+                            <p class="field-error" id="arrival_date_week_number-error" hidden></p>
                         </div>
 
                         <div class="field">
                             <label for="arrival_date_day_of_month">Arrival Day of Month</label>
                             <input id="arrival_date_day_of_month" name="arrival_date_day_of_month" type="number" min="1" max="31" required>
+                            <p class="field-error" id="arrival_date_day_of_month-error" hidden></p>
                         </div>
 
                         <div class="field">
                             <label for="total_stay">Total Stay (Nights)</label>
                             <input id="total_stay" name="total_stay" type="number" min="0" required>
+                            <p class="field-error" id="total_stay-error" hidden></p>
                             <p class="help">Total number of nights.</p>
                         </div>
                     </div>
@@ -109,6 +116,7 @@
                         <div class="field">
                             <label for="total_guests">Total Guests</label>
                             <input id="total_guests" name="total_guests" type="number" min="1" required>
+                            <p class="field-error" id="total_guests-error" hidden></p>
                         </div>
 
                         <div class="field">
@@ -117,17 +125,20 @@
                                 <option value="0">No</option>
                                 <option value="1">Yes</option>
                             </select>
+                            <p class="field-error" id="is_repeated_guest-error" hidden></p>
                         </div>
 
                         <div class="field">
                             <label for="previous_cancellations">Previous Cancellations</label>
                             <input id="previous_cancellations" name="previous_cancellations" type="number" min="0" required>
+                            <p class="field-error" id="previous_cancellations-error" hidden></p>
                             <p class="help">Number of previous bookings cancelled by the guest.</p>
                         </div>
 
                         <div class="field">
                             <label for="previous_bookings_not_canceled">Previous Bookings Not Canceled</label>
                             <input id="previous_bookings_not_canceled" name="previous_bookings_not_canceled" type="number" min="0" required>
+                            <p class="field-error" id="previous_bookings_not_canceled-error" hidden></p>
                         </div>
                     </div>
                 </section>
@@ -145,11 +156,13 @@
                                 <option value="SC">SC</option>
                                 <option value="Undefined">Undefined</option>
                             </select>
+                            <p class="field-error" id="meal-error" hidden></p>
                         </div>
 
                         <div class="field">
                             <label for="country">Country</label>
                             <input id="country" name="country" type="text" placeholder="PRT" required>
+                            <p class="field-error" id="country-error" hidden></p>
                             <p class="help">Enter a three-letter country code, for example PRT.</p>
                         </div>
 
@@ -165,6 +178,7 @@
                                 <option value="Online TA">Online TA</option>
                                 <option value="Undefined">Undefined</option>
                             </select>
+                            <p class="field-error" id="market_segment-error" hidden></p>
                         </div>
 
                         <div class="field">
@@ -176,6 +190,7 @@
                                 <option value="TA/TO">TA/TO</option>
                                 <option value="Undefined">Undefined</option>
                             </select>
+                            <p class="field-error" id="distribution_channel-error" hidden></p>
                         </div>
 
                         <div class="field">
@@ -191,6 +206,7 @@
                                 <option value="H">H</option>
                                 <option value="L">L</option>
                             </select>
+                            <p class="field-error" id="reserved_room_type-error" hidden></p>
                         </div>
 
                         <div class="field">
@@ -200,6 +216,7 @@
                                 <option value="Non Refund">Non Refund</option>
                                 <option value="Refundable">Refundable</option>
                             </select>
+                            <p class="field-error" id="deposit_type-error" hidden></p>
                         </div>
 
                         <div class="field">
@@ -210,6 +227,7 @@
                                 <option value="Transient">Transient</option>
                                 <option value="Transient-Party">Transient-Party</option>
                             </select>
+                            <p class="field-error" id="customer_type-error" hidden></p>
                         </div>
                     </div>
                 </section>
@@ -220,18 +238,21 @@
                     <div class="form-grid">
                         <div class="field">
                             <label for="adr">Average Daily Rate (ADR)</label>
-                            <input id="adr" name="adr" type="number" step="0.01" required>
+                            <input id="adr" name="adr" type="number" min="0" step="0.01" required>
+                            <p class="field-error" id="adr-error" hidden></p>
                             <p class="help">Average Daily Rate for the booking.</p>
                         </div>
 
                         <div class="field">
                             <label for="required_car_parking_spaces">Required Car Parking Spaces</label>
                             <input id="required_car_parking_spaces" name="required_car_parking_spaces" type="number" min="0" required>
+                            <p class="field-error" id="required_car_parking_spaces-error" hidden></p>
                         </div>
 
                         <div class="field">
                             <label for="total_of_special_requests">Total Special Requests</label>
                             <input id="total_of_special_requests" name="total_of_special_requests" type="number" min="0" required>
+                            <p class="field-error" id="total_of_special_requests-error" hidden></p>
                         </div>
                     </div>
                 </section>

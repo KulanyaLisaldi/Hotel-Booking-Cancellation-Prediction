@@ -196,10 +196,28 @@ select:focus {
     border-color: #1d4e89;
 }
 
-input.is-invalid,
-select.is-invalid {
-    border-color: #9b2c2c;
-    background-color: #fff8f7;
+input.input-invalid,
+select.input-invalid {
+    border-color: #b4534b;
+    background-color: #fdf7f6;
+}
+
+input.input-invalid:focus,
+select.input-invalid:focus {
+    outline-color: #b4534b;
+    border-color: #b4534b;
+}
+
+.field-error {
+    margin: 2px 0 0;
+    color: #9b2c2c;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 0.8rem;
+    line-height: 1.35;
+}
+
+.field-error[hidden] {
+    display: none;
 }
 
 .review-list {

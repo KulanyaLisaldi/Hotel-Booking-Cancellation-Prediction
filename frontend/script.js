@@ -11,6 +11,7 @@ const progressSteps = Array.from(document.querySelectorAll(".progress-step"));
 
 const PREDICT_URL = "http://127.0.0.1:5000/predict";
 const STEP_COUNT = 5;
+const REQUIRED_MESSAGE = "This field is required.";
 
 let currentStep = 1;
 
@@ -53,7 +54,79 @@ const NUMERIC_FIELDS = new Set([
     "total_guests",
 ]);
 
+const FIELD_RULES = {
+    lead_time: {
+        integer: true,
+        min: 0,
+        invalidNumber: "Lead Time must be a whole number.",
+        outOfRange: "Lead Time cannot be negative.",
+    },
+    arrival_date_year: {
+        integer: true,
+        min: 2000,
+        invalidNumber: "Arrival Year must be a whole number.",
+        outOfRange: "Arrival Year must be 2000 or later.",
+    },
+    arrival_date_week_number: {
+        integer: true,
+        min: 1,
+        max: 53,
+        invalidNumber: "Arrival Week Number must be between 1 and 53.",
+        outOfRange: "Arrival Week Number must be between 1 and 53.",
+    },
+    arrival_date_day_of_month: {
+        integer: true,
+        min: 1,
+        max: 31,
+        invalidNumber: "Arrival Day must be between 1 and 31.",
+        outOfRange: "Arrival Day must be between 1 and 31.",
+    },
+    total_stay: {
+        integer: true,
+        min: 0,
+        invalidNumber: "Total Stay must be a whole number.",
+        outOfRange: "Total Stay cannot be negative.",
+    },
+    total_guests: {
+        integer: true,
+        min: 1,
+        invalidNumber: "Total Guests must be at least 1.",
+        outOfRange: "Total Guests must be at least 1.",
+    },
+    previous_cancellations: {
+        integer: true,
+        min: 0,
+        invalidNumber: "Previous Cancellations cannot be negative.",
+        outOfRange: "Previous Cancellations cannot be negative.",
+    },
+    previous_bookings_not_canceled: {
+        integer: true,
+        min: 0,
+        invalidNumber: "Previous Bookings Not Canceled cannot be negative.",
+        outOfRange: "Previous Bookings Not Canceled cannot be negative.",
+    },
+    adr: {
+        integer: false,
+        min: 0,
+        invalidNumber: "ADR must be a valid number.",
+        outOfRange: "ADR cannot be negative.",
+    },
+    required_car_parking_spaces: {
+        integer: true,
+        min: 0,
+        invalidNumber: "Parking Spaces cannot be negative.",
+        outOfRange: "Parking Spaces cannot be negative.",
+    },
+    total_of_special_requests: {
+        integer: true,
+        min: 0,
+        invalidNumber: "Special Requests cannot be negative.",
+        outOfRange: "Special Requests cannot be negative.",
+    },
+};
+
 function readPayload() {
+    commitCountry();
     const payload = {};
 
     FEATURE_NAMES.forEach(function (name) {
@@ -126,14 +199,6 @@ function showValidationError(data) {
 
     const list = document.createElement("ul");
 
-    if (data.validation_errors && typeof data.validation_errors === "object") {
-        Object.keys(data.validation_errors).forEach(function (field) {
-            const item = document.createElement("li");
-            item.textContent = field + ": " + data.validation_errors[field];
-            list.appendChild(item);
-        });
-    }
-
     if (Array.isArray(data.missing_fields)) {
         data.missing_fields.forEach(function (field) {
             const item = document.createElement("li");
@@ -175,11 +240,152 @@ function fieldLabel(field) {
     return label ? label.textContent : field.name;
 }
 
-function clearFieldErrors(fields) {
-    fields.forEach(function (field) {
-        field.classList.remove("is-invalid");
-        field.removeAttribute("aria-invalid");
+function errorElement(field) {
+    return document.getElementById(field.id + "-error");
+}
+
+function stepForField(field) {
+    const section = field.closest(".form-step");
+    return section ? Number(section.dataset.step) : 1;
+}
+
+function commitCountry() {
+    const field = predictionForm.elements.country;
+    const normalized = field.value.trim().toUpperCase();
+    if (field.value !== normalized) {
+        field.value = normalized;
+    }
+}
+
+function isIntegerText(text) {
+    return /^-?\d+$/.test(text);
+}
+
+function isDecimalText(text) {
+    return /^-?(?:\d+\.?\d*|\.\d+)$/.test(text) && Number.isFinite(Number(text));
+}
+
+function messageFor(field) {
+    if (field.tagName === "SELECT") {
+        const allowed = Array.from(field.options).some(function (option) {
+            return option.value === field.value;
+        });
+        return field.value !== "" && allowed ? "" : REQUIRED_MESSAGE;
+    }
+
+    if (field.name === "country") {
+        return field.value.trim() === "" ? REQUIRED_MESSAGE : "";
+    }
+
+    const rule = FIELD_RULES[field.name];
+    if (!rule) {
+        return field.value.trim() === "" ? REQUIRED_MESSAGE : "";
+    }
+
+    if (field.validity && field.validity.badInput) {
+        return rule.invalidNumber;
+    }
+
+    const text = field.value.trim();
+    if (text === "") {
+        return REQUIRED_MESSAGE;
+    }
+
+    if (rule.integer) {
+        if (!isIntegerText(text)) {
+            return rule.invalidNumber;
+        }
+        const value = Number(text);
+        if (value < rule.min || (rule.max !== undefined && value > rule.max)) {
+            return rule.outOfRange;
+        }
+        return "";
+    }
+
+    if (!isDecimalText(text)) {
+        return rule.invalidNumber;
+    }
+    if (Number(text) < rule.min) {
+        return rule.outOfRange;
+    }
+    return "";
+}
+
+function showFieldError(field, message) {
+    const error = errorElement(field);
+    field.classList.add("input-invalid");
+    field.setAttribute("aria-invalid", "true");
+    if (!error) {
+        return;
+    }
+    error.hidden = false;
+    error.textContent = message;
+    field.setAttribute("aria-describedby", error.id);
+}
+
+function clearFieldError(field) {
+    const error = errorElement(field);
+    field.classList.remove("input-invalid");
+    field.removeAttribute("aria-invalid");
+    field.removeAttribute("aria-describedby");
+    if (!error) {
+        return;
+    }
+    error.hidden = true;
+    error.textContent = "";
+}
+
+function clearAllFieldErrors() {
+    FEATURE_NAMES.forEach(function (name) {
+        clearFieldError(predictionForm.elements[name]);
     });
+}
+
+function applyStepErrors(step) {
+    const fields = fieldsInStep(step);
+    let firstInvalid = null;
+
+    fields.forEach(function (field) {
+        const message = messageFor(field);
+        if (message) {
+            showFieldError(field, message);
+            if (!firstInvalid) {
+                firstInvalid = field;
+            }
+            return;
+        }
+        clearFieldError(field);
+    });
+
+    if (firstInvalid) {
+        firstInvalid.focus();
+        firstInvalid.scrollIntoView({ block: "nearest" });
+    }
+
+    return firstInvalid === null;
+}
+
+function firstInvalidStep() {
+    commitCountry();
+    for (let step = 1; step <= 4; step += 1) {
+        const invalid = fieldsInStep(step).some(function (field) {
+            return messageFor(field) !== "";
+        });
+        if (invalid) {
+            return step;
+        }
+    }
+    return null;
+}
+
+function blockInvalidSubmission() {
+    const step = firstInvalidStep();
+    if (step === null) {
+        return false;
+    }
+    showStep(step);
+    applyStepErrors(step);
+    return true;
 }
 
 function clearStepError() {
@@ -187,72 +393,16 @@ function clearStepError() {
     stepError.replaceChildren();
 }
 
-function prepareFieldValidity(step) {
-    fieldsInStep(step).forEach(function (field) {
-        field.setCustomValidity("");
-    });
-
-    if (step === 3 && predictionForm.elements.country.value.trim() === "") {
-        predictionForm.elements.country.setCustomValidity(
-            "Enter a country code. The value cannot be empty."
-        );
+function refreshFieldError(field) {
+    if (!field || !field.classList || !field.classList.contains("input-invalid")) {
+        return;
     }
-}
-
-function collectInvalidFields(step) {
-    prepareFieldValidity(step);
-    return fieldsInStep(step).filter(function (field) {
-        return !field.checkValidity();
-    });
-}
-
-function showStepError(fields) {
-    const intro = document.createElement("p");
-    intro.textContent = "Please correct the following before continuing.";
-
-    const list = document.createElement("ul");
-    fields.forEach(function (field) {
-        const item = document.createElement("li");
-        item.textContent = fieldLabel(field) + ": " + field.validationMessage;
-        list.appendChild(item);
-    });
-
-    stepError.hidden = false;
-    stepError.replaceChildren(intro, list);
-    stepError.scrollIntoView({ block: "nearest" });
-}
-
-function markInvalid(fields) {
-    fields.forEach(function (field) {
-        field.classList.add("is-invalid");
-        field.setAttribute("aria-invalid", "true");
-    });
-    showStepError(fields);
-    fields[0].focus();
-    fields[0].reportValidity();
-}
-
-function validateStep(step) {
-    const fields = fieldsInStep(step);
-    clearFieldErrors(fields);
-    const invalid = collectInvalidFields(step);
-
-    if (invalid.length === 0) {
-        clearStepError();
-        return true;
+    const message = messageFor(field);
+    if (message) {
+        showFieldError(field, message);
+        return;
     }
-
-    markInvalid(invalid);
-    return false;
-}
-
-function findFirstInvalidStep() {
-    for (let step = 1; step <= 4; step += 1) {
-        if (collectInvalidFields(step).length > 0) {
-            return step;
-        }
-    }
-    return null;
+    clearFieldError(field);
 }
 
 function renderReview() {
@@ -307,7 +457,7 @@ function showStep(step, options) {
         renderReview();
     }
 
-    if (options && options.focus) {
+    if (options && options.focusHeading) {
         const heading = formSteps[step - 1].querySelector("h2");
         if (heading) {
             heading.setAttribute("tabindex", "-1");
@@ -324,22 +474,61 @@ function setBusy(isBusy) {
     predictButton.textContent = isBusy ? "Predicting..." : "Predict Cancellation";
 }
 
-function clearResolvedFieldError(event) {
-    const field = event.target;
-    if (!field.classList || !field.classList.contains("is-invalid")) {
-        return;
+function showBackendFieldErrors(data) {
+    const validationErrors = data.validation_errors;
+    if (!validationErrors || typeof validationErrors !== "object") {
+        return false;
     }
-    if (typeof field.setCustomValidity === "function") {
-        field.setCustomValidity("");
+
+    let firstField = null;
+    Object.keys(validationErrors).forEach(function (name) {
+        const field = predictionForm.elements[name];
+        if (!field) {
+            return;
+        }
+        showFieldError(field, String(validationErrors[name]));
+        if (!firstField || stepForField(field) < stepForField(firstField)) {
+            firstField = field;
+        }
+    });
+
+    if (!firstField) {
+        return false;
     }
-    if (typeof field.checkValidity === "function" && field.checkValidity()) {
-        field.classList.remove("is-invalid");
-        field.removeAttribute("aria-invalid");
-    }
+
+    showStep(stepForField(firstField));
+    firstField.focus();
+    firstField.scrollIntoView({ block: "nearest" });
+    return true;
 }
 
-predictionForm.addEventListener("input", clearResolvedFieldError);
-predictionForm.addEventListener("change", clearResolvedFieldError);
+function responseHasGeneralError(data) {
+    if (Array.isArray(data.missing_fields) && data.missing_fields.length > 0) {
+        return true;
+    }
+    if (Array.isArray(data.unexpected_fields) && data.unexpected_fields.length > 0) {
+        return true;
+    }
+    if (!data.validation_errors || typeof data.validation_errors !== "object") {
+        return typeof data.error === "string";
+    }
+    return Object.keys(data.validation_errors).some(function (name) {
+        return !predictionForm.elements[name];
+    });
+}
+
+predictionForm.addEventListener("input", function (event) {
+    refreshFieldError(event.target);
+});
+
+predictionForm.addEventListener("change", function (event) {
+    refreshFieldError(event.target);
+});
+
+predictionForm.elements.country.addEventListener("blur", function () {
+    commitCountry();
+    refreshFieldError(predictionForm.elements.country);
+});
 
 predictionForm.addEventListener("keydown", function (event) {
     if (event.key !== "Enter") {
@@ -357,11 +546,14 @@ predictionForm.addEventListener("keydown", function (event) {
 });
 
 nextButton.addEventListener("click", function () {
-    if (!validateStep(currentStep)) {
+    if (currentStep === 3) {
+        commitCountry();
+    }
+    if (!applyStepErrors(currentStep)) {
         return;
     }
     hideResult();
-    showStep(currentStep + 1, { focus: true });
+    showStep(currentStep + 1, { focusHeading: true });
 });
 
 backButton.addEventListener("click", function () {
@@ -369,17 +561,13 @@ backButton.addEventListener("click", function () {
         return;
     }
     hideResult();
-    showStep(currentStep - 1, { focus: true });
+    showStep(currentStep - 1, { focusHeading: true });
 });
 
 predictButton.addEventListener("click", function (event) {
-    const invalidStep = findFirstInvalidStep();
-    if (invalidStep === null) {
-        return;
+    if (blockInvalidSubmission()) {
+        event.preventDefault();
     }
-    event.preventDefault();
-    showStep(invalidStep);
-    validateStep(invalidStep);
 });
 
 predictionForm.addEventListener("submit", async function (event) {
@@ -389,10 +577,7 @@ predictionForm.addEventListener("submit", async function (event) {
         return;
     }
 
-    const invalidStep = findFirstInvalidStep();
-    if (invalidStep !== null) {
-        showStep(invalidStep);
-        validateStep(invalidStep);
+    if (blockInvalidSubmission()) {
         return;
     }
 
@@ -417,7 +602,12 @@ predictionForm.addEventListener("submit", async function (event) {
         }
 
         if (!response.ok) {
-            showValidationError(data);
+            const mapped = showBackendFieldErrors(data);
+            if (!mapped || responseHasGeneralError(data)) {
+                showValidationError(data);
+            } else {
+                hideResult();
+            }
             return;
         }
 
@@ -433,12 +623,7 @@ predictionForm.addEventListener("submit", async function (event) {
 
 resetButton.addEventListener("click", function () {
     predictionForm.reset();
-    formSteps.slice(0, 4).forEach(function (section) {
-        clearFieldErrors(Array.from(section.querySelectorAll("input, select, textarea")));
-    });
-    fieldsInStep(3).forEach(function (field) {
-        field.setCustomValidity("");
-    });
+    clearAllFieldErrors();
     reviewSummary.replaceChildren();
     hideResult();
     showStep(1);
