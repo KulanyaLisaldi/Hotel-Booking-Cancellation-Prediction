@@ -44,6 +44,8 @@ REQUIRED_FEATURES = [
     "total_guests",
 ]
 
+REQUIRED_FEATURE_SET = set(REQUIRED_FEATURES)
+
 CATEGORICAL_FEATURES = [
     "hotel",
     "arrival_date_month",
@@ -205,6 +207,22 @@ def predict():
     if not isinstance(payload, dict):
         return jsonify({
             "error": "Request body must be a JSON object.",
+        }), 400
+
+    unexpected_fields = [
+        field for field in payload
+        if field not in REQUIRED_FEATURE_SET
+    ]
+    if unexpected_fields:
+        if len(unexpected_fields) == 1:
+            unexpected_message = "Unexpected field: " + unexpected_fields[0] + "."
+        else:
+            unexpected_message = (
+                "Unexpected fields: " + ", ".join(unexpected_fields) + "."
+            )
+        return jsonify({
+            "error": unexpected_message,
+            "unexpected_fields": unexpected_fields,
         }), 400
 
     missing_fields = [
